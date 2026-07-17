@@ -11,11 +11,11 @@ use serde_yaml::{Mapping, Value as Yaml};
 /// Returns the slice that follows the separator, or `None` if `s` doesn't start with one.
 fn strip_sep(s: &str) -> Option<&str> {
     let s = s.strip_prefix("---")?;
-    let s = s.trim_start_matches(|c| c == ' ' || c == '\t');
+    let s = s.trim_start_matches([' ', '\t']);
     // Accept \n, \r\n, or bare EOF
     s.strip_prefix('\n')
         .or_else(|| s.strip_prefix("\r\n"))
-        .or_else(|| if s.is_empty() { Some("") } else { None })
+        .or(if s.is_empty() { Some("") } else { None })
 }
 
 /// Split a markdown file into `(Option<frontmatter_text>, body_text)`.
@@ -259,10 +259,10 @@ fn now_str() -> String {
 
 /// Expand a leading `~/` to `$HOME/`, then resolve to an absolute `PathBuf`.
 pub fn path_of(s: &str) -> PathBuf {
-    if let Some(tail) = s.strip_prefix("~/") {
-        if let Some(home) = std::env::var_os("HOME") {
-            return PathBuf::from(home).join(tail);
-        }
+    if let Some(tail) = s.strip_prefix("~/")
+        && let Some(home) = std::env::var_os("HOME")
+    {
+        return PathBuf::from(home).join(tail);
     }
     PathBuf::from(s)
 }
@@ -291,7 +291,7 @@ pub fn read_meta(path: &Path, key: Option<&str>) -> Result<Json> {
     Ok(match key {
         Some(k) => {
             let val = mapping
-                .get(&Yaml::String(k.to_owned()))
+                .get(Yaml::String(k.to_owned()))
                 .cloned()
                 .unwrap_or(Yaml::Null);
             yaml_to_json(val)
@@ -323,7 +323,7 @@ pub fn read_meta_typed(path: &Path, key: Option<&str>) -> Result<Json> {
     Ok(match key {
         Some(k) => {
             let val = mapping
-                .get(&Yaml::String(k.to_owned()))
+                .get(Yaml::String(k.to_owned()))
                 .cloned()
                 .unwrap_or(Yaml::Null);
             annotate(val)
@@ -377,7 +377,7 @@ pub fn bump_version(path: &Path, level: &str) -> Result<String> {
     let mut mapping = fm_opt.map_or(Ok(Mapping::new()), |fm| parse_yaml(&fm))?;
 
     let v_str = mapping
-        .get(&Yaml::String("version".into()))
+        .get(Yaml::String("version".into()))
         .and_then(|v| v.as_str())
         .unwrap_or("0.1.0")
         .to_owned();
@@ -715,14 +715,18 @@ Body of the chapter goes here.
         let after_text = std::fs::read_to_string(f.path()).unwrap();
         let after = key_order(&after_text);
 
-        assert_eq!(before, after, "key order changed after updating existing fields");
+        assert_eq!(
+            before, after,
+            "key order changed after updating existing fields"
+        );
     }
 
     #[test]
     fn write_preserves_key_order_with_touch_updated() {
         use std::io::Write;
         // updated is in the middle — it must stay there after auto-touch
-        let src = "---\narc: 1\ntitle: WHAT\nupdated: 2026-01-01 00:00:00\nstatus: draft\n---\nbody\n";
+        let src =
+            "---\narc: 1\ntitle: WHAT\nupdated: 2026-01-01 00:00:00\nstatus: draft\n---\nbody\n";
         let mut f = tempfile::NamedTempFile::new().unwrap();
         f.write_all(src.as_bytes()).unwrap();
 
@@ -735,13 +739,17 @@ Body of the chapter goes here.
         let after_text = std::fs::read_to_string(f.path()).unwrap();
         let after = key_order(&after_text);
 
-        assert_eq!(before, after, "updated field shifted position after touch_updated");
+        assert_eq!(
+            before, after,
+            "updated field shifted position after touch_updated"
+        );
     }
 
     #[test]
     fn bump_preserves_key_order() {
         use std::io::Write;
-        let src = "---\narc: 1\nversion: 1.0.0\nupdated: 2026-01-01 00:00:00\nstatus: draft\n---\nbody\n";
+        let src =
+            "---\narc: 1\nversion: 1.0.0\nupdated: 2026-01-01 00:00:00\nstatus: draft\n---\nbody\n";
         let mut f = tempfile::NamedTempFile::new().unwrap();
         f.write_all(src.as_bytes()).unwrap();
 
@@ -769,7 +777,11 @@ Body of the chapter goes here.
         let after = key_order(&after_text);
 
         assert_eq!(&after[..2], &["arc", "title"], "original keys moved");
-        assert_eq!(after.last().unwrap(), "newfield", "new key not appended at end");
+        assert_eq!(
+            after.last().unwrap(),
+            "newfield",
+            "new key not appended at end"
+        );
     }
 
     #[test]
@@ -784,14 +796,20 @@ Body of the chapter goes here.
         let mut updates = serde_json::Map::new();
         updates.insert("arc".into(), Json::Number(2.into()));
         updates.insert("status".into(), Json::String("published".into()));
-        updates.insert("mood".into(), Json::Array(vec![Json::String("Hopeful".into())]));
+        updates.insert(
+            "mood".into(),
+            Json::Array(vec![Json::String("Hopeful".into())]),
+        );
         updates.insert("prev".into(), Json::String("[[New Prev]]".into()));
         write_meta(f.path(), updates, true).unwrap();
 
         let after_text = std::fs::read_to_string(f.path()).unwrap();
         let after = key_order(&after_text);
 
-        assert_eq!(before, after, "key order changed after writing chapter frontmatter");
+        assert_eq!(
+            before, after,
+            "key order changed after writing chapter frontmatter"
+        );
     }
 
     // ── path_of ───────────────────────────────────────────────────────────────
