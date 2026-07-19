@@ -21,7 +21,7 @@ The compiled binary is named `frontmatter`. Installing copies it into
 
 ```bash
 just build    # cargo build --release → target/release/frontmatter
-just test     # cargo test (38 tests, must stay green)
+just test     # cargo test (43 tests, must stay green)
 just lint     # cargo clippy -- -D warnings
 just compress # build + upx-pack target/release/frontmatter in place
 just install  # compress + copy frontmatter into ~/.local/bin
@@ -31,7 +31,7 @@ just install  # compress + copy frontmatter into ~/.local/bin
 whether the binary is already packed before invoking `upx --best --lzma`,
 so re-running `just install` without a source change doesn't error.
 
-Always run `just test` after any change and confirm all 38 tests pass
+Always run `just test` after any change and confirm all 43 tests pass
 before considering a task done.
 
 ## Core invariants — never break these
@@ -50,6 +50,27 @@ before considering a task done.
 
 4. **MCP stdout is clean.** All logging goes to stderr via `tracing`.
    Nothing must be written to stdout except the MCP JSON-RPC messages.
+   `serve_mcp` now routes stdin/stdout through an in-memory-pipe shim, so a
+   *single* task owns the real stdout — injected replies and rmcp's output
+   must never interleave. Anything else writing to stdout breaks this.
+
+## Antigravity (AGY CLI) compatibility shim
+
+Google's Antigravity CLI violates the MCP lifecycle: it sends a proprietary
+`server/discover` request *before* the mandatory `initialize` handshake to
+decide whether the executable is one of its bundled plugins. rmcp's strict
+state machine treats that stray frame as fatal and drops the connection
+(`expect initialized request, but received: ...server/discover...`), so the
+server never starts. Node-based servers survive only because they reply
+`-32601 Method not found` and keep the pipe open.
+
+`serve_mcp` reproduces that lenient behaviour: it interposes a filter between
+the real stdio and rmcp (fed via `tokio::io::duplex` pipes). `intercept_probe`
+answers any method in `AGY_PROBE_METHODS` with `-32601` and swallows the frame;
+everything else — including the real `initialize` — passes through byte-for-byte.
+If AGY adds more pre-init probe methods, extend `AGY_PROBE_METHODS`. Guarded by
+the `tests` module in `main.rs`. **Do not** hand raw stdio straight to
+`rmcp::serve_server` again, or AGY breaks.
 
 ## Key functions in `lib.rs`
 
