@@ -8,23 +8,28 @@ Guidelines for any LLM agent working in this repository.
 src/
   lib.rs    — all core logic (split, join, YAML round-trip, type inference, public API)
   main.rs   — CLI dispatch + MCP ServerHandler (3 tools: read_meta, write_meta, bump_version)
-Cargo.toml  — single package, one lib + one binary named `front`
+Cargo.toml  — single package, one lib + one binary named `frontmatter`
 justfile    — build, test, install recipes
 ```
 
 The package name is `frontmatter-mcp`; the lib crate name is `frontmatter_mcp`
 (Cargo normalises the hyphen). `main.rs` imports it as `use frontmatter_mcp as fm;`.
-The compiled binary is named `front`. Installing creates a relative symlink
-`front-mcp → front` in `~/.local/bin/`.
+The compiled binary is named `frontmatter`. Installing copies it into
+`~/.local/bin/` — no symlink is created.
 
 ## Build & test
 
 ```bash
-just build   # cargo build --release → target/release/front
-just test    # cargo test (38 tests, must stay green)
-just lint    # cargo clippy -- -D warnings
-just install # build + copy front + symlink front-mcp into ~/.local/bin
+just build    # cargo build --release → target/release/frontmatter
+just test     # cargo test (38 tests, must stay green)
+just lint     # cargo clippy -- -D warnings
+just compress # build + upx-pack target/release/frontmatter in place
+just install  # compress + copy frontmatter into ~/.local/bin
 ```
+
+`just compress` requires `upx` on PATH. It's idempotent: `upx -t` checks
+whether the binary is already packed before invoking `upx --best --lzma`,
+so re-running `just install` without a source change doesn't error.
 
 Always run `just test` after any change and confirm all 38 tests pass
 before considering a task done.
@@ -118,15 +123,15 @@ without a compelling reason.
 ## Binary detection logic
 
 `main()` enters MCP server mode when:
-- The binary's file stem ends with `-mcp` (e.g. invoked as `front-mcp`
-  via a symlink), **or**
+- The binary's file stem ends with `-mcp` (e.g. if manually renamed or
+  symlinked to `frontmatter-mcp`), **or**
 - The first CLI argument is `serve`.
 
-Everything else is CLI mode. This lets a single binary serve both roles:
+Everything else is CLI mode. `just install` no longer creates a `-mcp`
+symlink, so the normal way to reach MCP mode is the explicit subcommand:
 
 ```bash
-just install          # installs front + creates front-mcp symlink
-front-mcp             # MCP server mode via symlink
-front serve           # MCP server mode via explicit subcommand
-front read ~/notes/foo.md   # CLI mode
+just install                 # installs frontmatter into ~/.local/bin
+frontmatter serve            # MCP server mode via explicit subcommand
+frontmatter read ~/notes/foo.md   # CLI mode
 ```

@@ -1,4 +1,4 @@
-bin     := "front"
+bin     := "frontmatter"
 bin_dir := env_var("HOME") / ".local/bin"
 
 # List available recipes
@@ -24,17 +24,19 @@ lint:
 # Build, test, and lint in one shot
 check: build test lint
 
-# Install front + front-mcp symlink into ~/.local/bin
-install: build
-    install -Dm755 target/release/{{bin}} {{bin_dir}}/{{bin}}
-    ln -sf {{bin}} {{bin_dir}}/{{bin}}-mcp
-    @echo "installed {{bin_dir}}/{{bin}}"
-    @echo "symlinked {{bin_dir}}/{{bin}}-mcp → {{bin}}"
+# Compress the release binary with upx (skips if already packed)
+compress: build
+    upx -t target/release/{{bin}} >/dev/null 2>&1 || upx --best --lzma target/release/{{bin}}
 
-# Remove installed binaries
+# Install frontmatter into ~/.local/bin
+install: compress
+    install -Dm755 target/release/{{bin}} {{bin_dir}}/{{bin}}
+    @echo "installed {{bin_dir}}/{{bin}}"
+
+# Remove installed binary
 uninstall:
-    rm -f {{bin_dir}}/{{bin}} {{bin_dir}}/{{bin}}-mcp
-    @echo "removed {{bin_dir}}/{{bin}} and {{bin_dir}}/{{bin}}-mcp"
+    rm -f {{bin_dir}}/{{bin}}
+    @echo "removed {{bin_dir}}/{{bin}}"
 
 # Remove build artifacts
 clean:
