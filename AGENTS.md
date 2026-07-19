@@ -15,7 +15,9 @@ justfile    — build, test, install recipes
 The package name is `frontmatter-mcp`; the lib crate name is `frontmatter_mcp`
 (Cargo normalises the hyphen). `main.rs` imports it as `use frontmatter_mcp as fm;`.
 The compiled binary is named `frontmatter`. Installing copies it into
-`~/.local/bin/` — no symlink is created.
+`~/.local/bin/` (or `/usr/local/bin/` with `just install --system`) and, if
+absent, creates a relative `frontmatter-mcp` symlink beside it so the binary
+can be reached in MCP mode by name.
 
 ## Build & test
 
@@ -24,7 +26,8 @@ just build    # cargo build --release → target/release/frontmatter
 just test     # cargo test (43 tests, must stay green)
 just lint     # cargo clippy -- -D warnings
 just compress # build + upx-pack target/release/frontmatter in place
-just install  # compress + copy frontmatter into ~/.local/bin
+just install  # compress + copy frontmatter into ~/.local/bin, link frontmatter-mcp
+just install --system   # same, into /usr/local/bin via sudo
 ```
 
 `just compress` requires `upx` on PATH. It's idempotent: `upx -t` checks
@@ -148,11 +151,13 @@ without a compelling reason.
   symlinked to `frontmatter-mcp`), **or**
 - The first CLI argument is `serve`.
 
-Everything else is CLI mode. `just install` no longer creates a `-mcp`
-symlink, so the normal way to reach MCP mode is the explicit subcommand:
+Everything else is CLI mode. `just install` creates a relative `frontmatter-mcp`
+symlink beside the binary, so MCP mode can be reached either by that name or via
+the explicit subcommand:
 
 ```bash
-just install                 # installs frontmatter into ~/.local/bin
+just install                 # installs frontmatter + frontmatter-mcp symlink
+frontmatter-mcp              # MCP server mode via the symlinked name
 frontmatter serve            # MCP server mode via explicit subcommand
 frontmatter read ~/notes/foo.md   # CLI mode
 ```

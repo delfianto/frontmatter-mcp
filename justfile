@@ -1,5 +1,6 @@
 bin     := "frontmatter"
 bin_dir := env_var("HOME") / ".local/bin"
+sys_dir := "/usr/local/bin"
 
 # List available recipes
 default:
@@ -28,15 +29,40 @@ check: build test lint
 compress: build
     upx -t target/release/{{bin}} >/dev/null 2>&1 || upx --best --lzma target/release/{{bin}}
 
-# Install frontmatter into ~/.local/bin
-install: compress
-    install -Dm755 target/release/{{bin}} {{bin_dir}}/{{bin}}
-    @echo "installed {{bin_dir}}/{{bin}}"
+# Install frontmatter into ~/.local/bin (pass --system for /usr/local/bin via sudo)
+install *flags: compress
+    #!/usr/bin/env bash
+    set -euo pipefail
+    dir="{{bin_dir}}"
+    sudo=""
+    for f in {{flags}}; do
+        case "$f" in
+            --system) dir="{{sys_dir}}"; sudo="sudo" ;;
+            *) echo "install: unknown flag '$f' (only --system is supported)" >&2; exit 1 ;;
+        esac
+    done
+    $sudo install -Dm755 target/release/{{bin}} "$dir/{{bin}}"
+    echo "installed $dir/{{bin}}"
+    link="$dir/{{bin}}-mcp"
+    if [ ! -e "$link" ] && [ ! -L "$link" ]; then
+        $sudo ln -s "{{bin}}" "$link"   # relative target: resolves to sibling {{bin}}
+        echo "linked $link -> {{bin}}"
+    fi
 
-# Remove installed binary
-uninstall:
-    rm -f {{bin_dir}}/{{bin}}
-    @echo "removed {{bin_dir}}/{{bin}}"
+# Remove installed binary + symlink (pass --system for /usr/local/bin via sudo)
+uninstall *flags:
+    #!/usr/bin/env bash
+    set -euo pipefail
+    dir="{{bin_dir}}"
+    sudo=""
+    for f in {{flags}}; do
+        case "$f" in
+            --system) dir="{{sys_dir}}"; sudo="sudo" ;;
+            *) echo "uninstall: unknown flag '$f' (only --system is supported)" >&2; exit 1 ;;
+        esac
+    done
+    $sudo rm -f "$dir/{{bin}}" "$dir/{{bin}}-mcp"
+    echo "removed $dir/{{bin}} and $dir/{{bin}}-mcp"
 
 # Remove build artifacts
 clean:
