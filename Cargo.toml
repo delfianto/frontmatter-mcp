@@ -3,7 +3,7 @@ name = "frontmatter-mcp"
 version = "0.1.0"
 edition = "2024"
 description = "Surgical YAML frontmatter patcher for Markdown/Obsidian files — CLI + MCP server in one binary"
-license-file = "LICENSE.md"
+license = "MIT"
 
 [lib]
 path = "src/lib.rs"
