@@ -447,7 +447,11 @@ mod tests {
         let v: Value = serde_json::from_slice(&reply).unwrap();
         assert_eq!(v["jsonrpc"], json!("2.0"));
         assert_eq!(v["id"], json!(1), "must echo the request id back");
-        assert_eq!(v["error"]["code"], json!(-32601), "must be Method not found");
+        assert_eq!(
+            v["error"]["code"],
+            json!(-32601),
+            "must be Method not found"
+        );
     }
 
     #[test]
@@ -469,9 +473,14 @@ mod tests {
 
     #[test]
     fn normal_mcp_traffic_passes_through() {
-        assert!(intercept_probe(br#"{"jsonrpc":"2.0","method":"notifications/initialized"}"#).is_none());
+        assert!(
+            intercept_probe(br#"{"jsonrpc":"2.0","method":"notifications/initialized"}"#).is_none()
+        );
         assert!(intercept_probe(br#"{"jsonrpc":"2.0","id":2,"method":"tools/list"}"#).is_none());
-        assert!(intercept_probe(br#"{"jsonrpc":"2.0","id":3,"method":"tools/call","params":{}}"#).is_none());
+        assert!(
+            intercept_probe(br#"{"jsonrpc":"2.0","id":3,"method":"tools/call","params":{}}"#)
+                .is_none()
+        );
     }
 
     #[test]
