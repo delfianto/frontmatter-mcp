@@ -263,7 +263,10 @@ fn run_cli(args: &[String]) -> anyhow::Result<()> {
         }
 
         Some("read") => {
-            anyhow::ensure!(args.len() >= 2, "usage: frontmatter read <path> [--key KEY]");
+            anyhow::ensure!(
+                args.len() >= 2,
+                "usage: frontmatter read <path> [--key KEY]"
+            );
             let path = fm::path_of(&args[1]);
             let key = flag_val(&args[2..], "--key", "-k");
             let v = fm::read_meta(&path, key)?;
