@@ -1,5 +1,6 @@
-//! Single binary: runs as CLI when invoked as `front`, and as an MCP
-//! server when invoked as `front-mcp` (symlink) or via `front serve`.
+//! Single binary: runs as CLI when invoked as `frontmatter`, and as an MCP
+//! server when invoked with a binary name/symlink ending in `-mcp` or via
+//! `frontmatter serve`.
 
 #![allow(clippy::field_reassign_with_default)]
 
@@ -30,7 +31,7 @@ impl ServerHandler for Handler {
         caps.tools = Some(Default::default());
 
         let mut impl_info = Implementation::default();
-        impl_info.name = "front-mcp".to_owned();
+        impl_info.name = "frontmatter-mcp".to_owned();
         impl_info.version = env!("CARGO_PKG_VERSION").to_owned();
 
         let mut info = ServerInfo::default();
@@ -220,7 +221,7 @@ async fn serve_mcp() -> anyhow::Result<()> {
         )
         .init();
 
-    info!("front-mcp starting");
+    info!("frontmatter-mcp starting");
 
     let (stdin, stdout) = rmcp::transport::io::stdio();
     let srv = rmcp::serve_server(Handler, (stdin, stdout))
@@ -233,15 +234,15 @@ async fn serve_mcp() -> anyhow::Result<()> {
 // ── CLI entry ─────────────────────────────────────────────────────────────────
 
 const USAGE: &str = "\
-front — surgical YAML frontmatter patcher for Markdown/Obsidian files
+frontmatter — surgical YAML frontmatter patcher for Markdown/Obsidian files
 
 USAGE:
-  front read  <path> [--key KEY]
-  front write <path> <json_object> [--no-touch-updated]
-  front bump  <path> [--level major|minor|patch]
-  front serve                         (run as MCP server on stdio)
+  frontmatter read  <path> [--key KEY]
+  frontmatter write <path> <json_object> [--no-touch-updated]
+  frontmatter bump  <path> [--level major|minor|patch]
+  frontmatter serve                         (run as MCP server on stdio)
 
-Symlink or rename the binary to `front-mcp` to start directly in MCP mode.
+Symlink or rename the binary to end in `-mcp` to start directly in MCP mode.
 All output is JSON on stdout. Non-zero exit on error.";
 
 fn flag_val<'a>(args: &'a [String], flag: &str, short: &str) -> Option<&'a str> {
@@ -262,7 +263,7 @@ fn run_cli(args: &[String]) -> anyhow::Result<()> {
         }
 
         Some("read") => {
-            anyhow::ensure!(args.len() >= 2, "usage: front read <path> [--key KEY]");
+            anyhow::ensure!(args.len() >= 2, "usage: frontmatter read <path> [--key KEY]");
             let path = fm::path_of(&args[1]);
             let key = flag_val(&args[2..], "--key", "-k");
             let v = fm::read_meta(&path, key)?;
@@ -272,7 +273,7 @@ fn run_cli(args: &[String]) -> anyhow::Result<()> {
         Some("write") => {
             anyhow::ensure!(
                 args.len() >= 3,
-                "usage: front write <path> <json_object> [--no-touch-updated]"
+                "usage: frontmatter write <path> <json_object> [--no-touch-updated]"
             );
             let path = fm::path_of(&args[1]);
             let updates: serde_json::Map<String, Value> =
@@ -285,7 +286,7 @@ fn run_cli(args: &[String]) -> anyhow::Result<()> {
         Some("bump") => {
             anyhow::ensure!(
                 args.len() >= 2,
-                "usage: front bump <path> [--level major|minor|patch]"
+                "usage: frontmatter bump <path> [--level major|minor|patch]"
             );
             let path = fm::path_of(&args[1]);
             let level = flag_val(&args[2..], "--level", "-l").unwrap_or("patch");
@@ -294,7 +295,7 @@ fn run_cli(args: &[String]) -> anyhow::Result<()> {
         }
 
         Some("serve") => {
-            // Reached here if called as `front serve` but tokio isn't running yet.
+            // Reached here if called as `frontmatter serve` but tokio isn't running yet.
             // This branch is dead — serve_mcp() is dispatched before run_cli() is called.
             unreachable!()
         }

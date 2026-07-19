@@ -9,7 +9,7 @@ license-file = "LICENSE.md"
 path = "src/lib.rs"
 
 [[bin]]
-name = "front"
+name = "frontmatter"
 path = "src/main.rs"
 
 [dependencies]
