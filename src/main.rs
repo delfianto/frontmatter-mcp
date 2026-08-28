@@ -11,8 +11,8 @@ use anyhow::Context;
 use rmcp::{
     ErrorData as McpError, RoleServer, ServerHandler,
     model::{
-        CallToolRequestParams, CallToolResult, ContentBlock, Implementation, ListToolsResult,
-        PaginatedRequestParams, ServerCapabilities, ServerInfo, Tool,
+        CallToolRequestParams, CallToolResponse, CallToolResult, ContentBlock, Implementation,
+        ListToolsResult, PaginatedRequestParams, ServerCapabilities, ServerInfo, Tool,
     },
     service::RequestContext,
 };
@@ -59,8 +59,8 @@ impl ServerHandler for Handler {
         &self,
         req: CallToolRequestParams,
         _ctx: RequestContext<RoleServer>,
-    ) -> Result<CallToolResult, McpError> {
-        dispatch(req)
+    ) -> Result<CallToolResponse, McpError> {
+        dispatch(req).map(Into::into)
     }
 }
 
