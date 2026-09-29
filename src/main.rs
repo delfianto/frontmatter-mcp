@@ -12,7 +12,7 @@ use rmcp::{
     ErrorData as McpError, RoleServer, ServerHandler,
     model::{
         CallToolRequestParams, CallToolResponse, CallToolResult, ContentBlock, Implementation,
-        ListToolsResult, PaginatedRequestParams, ServerCapabilities, ServerInfo, Tool,
+        ListToolsResult, PaginatedRequestParams, ServerCapabilities, ServerConfig, Tool,
     },
     service::RequestContext,
 };
@@ -26,7 +26,7 @@ use frontmatter_mcp as fm;
 struct Handler;
 
 impl ServerHandler for Handler {
-    fn get_info(&self) -> ServerInfo {
+    fn get_info(&self) -> ServerConfig {
         let mut caps = ServerCapabilities::default();
         caps.tools = Some(Default::default());
 
@@ -34,7 +34,7 @@ impl ServerHandler for Handler {
         impl_info.name = "frontmatter-mcp".to_owned();
         impl_info.version = env!("CARGO_PKG_VERSION").to_owned();
 
-        let mut info = ServerInfo::default();
+        let mut info = ServerConfig::default();
         info.protocol_version = rmcp::model::ProtocolVersion::LATEST;
         info.capabilities = caps;
         info.server_info = impl_info;
