@@ -16,7 +16,7 @@ path = "src/main.rs"
 [dependencies]
 anyhow = "1"
 chrono = { version = "0.4", features = ["clock"] }
-rmcp = { version = "3.1", features = ["server", "transport-io"] }
+rmcp = { version = "3.9", features = ["server", "transport-io"] }
 serde = "1"
 serde_json = "1"
 serde_yaml = "0.9"
