@@ -1,0 +1,20 @@
+pkgname=frontmatter-mcp-bin
+pkgver=0.2.0
+pkgrel=1
+pkgdesc='Markdown frontmatter editor and MCP server'
+arch=('x86_64')
+url='https://github.com/delfianto/frontmatter-mcp'
+license=('MIT')
+depends=('glibc' 'libgcc')
+provides=("frontmatter-mcp=$pkgver")
+conflicts=('frontmatter-mcp')
+options=('!strip' '!debug')
+_archive="frontmatter-mcp-v$pkgver-linux-x86_64"
+source=("$url/releases/download/v$pkgver/$_archive.tar.gz")
+sha256sums=('ec1b2d794ba32034a09609903ab6ceef6b61b9cd487ea4de3a5cd21c3c4447a0')
+
+package() {
+    cd "$srcdir/$_archive"
+    install -Dm0755 frontmatter "$pkgdir/usr/local/bin/frontmatter"
+    install -Dm0644 LICENSE "$pkgdir/usr/share/licenses/$pkgname/LICENSE"
+}
