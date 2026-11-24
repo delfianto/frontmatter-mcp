@@ -1,6 +1,6 @@
 [package]
 name = "frontmatter-mcp"
-version = "0.2.0"
+version = "0.2.1"
 edition = "2024"
 rust-version = "1.100.0"
 description = "Surgical YAML frontmatter patcher for Markdown/Obsidian files — CLI + MCP server in one binary"
