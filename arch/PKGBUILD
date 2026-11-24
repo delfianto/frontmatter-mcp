@@ -1,5 +1,5 @@
 pkgname=frontmatter-mcp-bin
-pkgver=0.2.0
+pkgver=0.2.1
 pkgrel=1
 pkgdesc='Markdown frontmatter editor and MCP server'
 arch=('x86_64')
@@ -11,10 +11,10 @@ conflicts=('frontmatter-mcp')
 options=('!strip' '!debug')
 _archive="frontmatter-mcp-v$pkgver-linux-x86_64"
 source=("$url/releases/download/v$pkgver/$_archive.tar.gz")
-sha256sums=('ec1b2d794ba32034a09609903ab6ceef6b61b9cd487ea4de3a5cd21c3c4447a0')
+sha256sums=('3a91dd2914f0263478f1536a624016c6ff5d03137a4c08350c26089bca30904a')
 
 package() {
     cd "$srcdir/$_archive"
-    install -Dm0755 frontmatter "$pkgdir/usr/local/bin/frontmatter"
+    install -Dm0755 frontmatter "$pkgdir/usr/bin/frontmatter"
     install -Dm0644 LICENSE "$pkgdir/usr/share/licenses/$pkgname/LICENSE"
 }
