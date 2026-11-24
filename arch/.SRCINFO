@@ -1,17 +1,18 @@
-pkgbase = frontmatter-mcp-bin
+pkgbase = frontmatter-mcp
 	pkgdesc = Markdown frontmatter editor and MCP server
 	pkgver = 0.2.1
-	pkgrel = 1
+	pkgrel = 2
 	url = https://github.com/delfianto/frontmatter-mcp
 	arch = x86_64
 	license = MIT
 	depends = glibc
 	depends = libgcc
-	provides = frontmatter-mcp=0.2.1
-	conflicts = frontmatter-mcp
+	provides = frontmatter-mcp-bin=0.2.1-2
+	conflicts = frontmatter-mcp-bin
+	replaces = frontmatter-mcp-bin
 	options = !strip
 	options = !debug
-	source = https://github.com/delfianto/frontmatter-mcp/releases/download/v0.2.1/frontmatter-mcp-v0.2.1-linux-x86_64.tar.gz
+	source = https://github.com/delfianto/frontmatter-mcp/releases/download/arch-v0.2.1-2/frontmatter-mcp-v0.2.1-linux-x86_64.tar.gz
 	sha256sums = 3a91dd2914f0263478f1536a624016c6ff5d03137a4c08350c26089bca30904a
 
-pkgname = frontmatter-mcp-bin
+pkgname = frontmatter-mcp
